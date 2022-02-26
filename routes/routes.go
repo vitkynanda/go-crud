@@ -13,7 +13,7 @@ func HandlerRequest() {
 	router.Use(cors.Default())
 
 	router.GET("/articles", controllers.GetAllArticles )
-	router.GET("/articles/:limit/:offset", controllers.PaginationPostedArticle )
+	router.GET("/articles/:page/:limit", controllers.PaginationPostedArticle )
 	router.GET("/article/:id", controllers.GetArticleById )
 	router.POST("/article", controllers.CreateNewArticle )	
 	router.PUT("/article/:id", controllers.UpdateArticle )

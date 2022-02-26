@@ -22,14 +22,26 @@ func GetAllArticles(c *gin.Context) {
 }
 
 func PaginationPostedArticle(c *gin.Context) {
-	limit, _ := strconv.Atoi(c.Param("limit"))
-	offset, _ :=  strconv.Atoi(c.Param("offset"))
+	page, _ := strconv.Atoi(c.Param("page"))
+	limit, _ :=  strconv.Atoi(c.Param("limit"))
+
+	offset := (page-1) *limit
 
 	articles := []models.Article{}
-	err := connection.DB.Find(&articles).Limit(limit).Offset(offset).Error
+	
+	sql := "SELECT * FROM articles"
+	if page == 1 {
+		sql = fmt.Sprintf("%s LIMIT %d", sql, limit)
+	} else {
+		sql = fmt.Sprintf("%s LIMIT %d , %d", sql, limit ,offset)
+	}
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal Server Error", "errors": "Failed delete   article"})
+	fmt.Println(sql)
+
+
+
+	if err := connection.DB.Raw(sql).Scan(&articles).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal Server Error", "errors": "Failed to find article"})
 		return
 	}
 
@@ -67,7 +79,7 @@ func CreateNewArticle(c *gin.Context) {
 	}
 
 	if errDB := connection.DB.Create(&article).Error; errDB != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal Server Error", "errors": "Failed create   article"})
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "Internal Server Error", "errors": "Failed create article"})
 		return
 	}
 
@@ -85,7 +97,7 @@ func UpdateArticle(c *gin.Context) {
 	if err := c.ShouldBindJSON(&article); err != nil {
 	errorMessages :=  []string{}
 	for _, e :=  range err.(validator.ValidationErrors) {
-		errorMessage := fmt.Sprintf("Error on Filled %s, condition: %s", e.Field(), e.ActualTag())
+		errorMessage := fmt.Sprintf("Error on Field %s, condition: %s", e.Field(), e.ActualTag())
 		errorMessages = append(errorMessages,  errorMessage)
 		}
 		c.JSON(http.StatusOK, gin.H{"status": "bad request", "errors": errorMessages})
@@ -103,7 +115,7 @@ func UpdateArticle(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": "ok", "message": "Create article  successfully",  "data" : article})
+	c.JSON(http.StatusOK, gin.H{"status": "ok", "message": "Update article  successfully",  "data" : article})
 }
 
 func DeleteArticleById(c *gin.Context) {

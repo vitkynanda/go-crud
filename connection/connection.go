@@ -2,6 +2,7 @@ package connection
 
 import (
 	"fmt"
+	"go-api/models"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -21,5 +22,6 @@ func Connect() {
 
 	fmt.Println("Connection success")
 
+	DB.AutoMigrate(&models.Article{})
 	
 }
